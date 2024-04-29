@@ -1,6 +1,6 @@
 const fs = require('fs');
 const inquirer = require('inquirer');
-const generateShape = require('./lib/shapes.js');
+const { Circle, Triangle, Square, Svg } = require('./lib/shapes.js');
 
 
 const questions = [
@@ -9,7 +9,7 @@ const questions = [
         name: 'text',
         message: 'What is the logo text? (3 character maximum)',
         validate: function (input) {
-            if (input.length < 4) {
+            if (input.length <= 3) {
                 return true;
               } else {
                 return '3 character maximum.';
@@ -36,8 +36,8 @@ const questions = [
 ];
 
 // TODO: Create a function to write logo file
-function writeFile(fileName, shape) {
-    fs.writeFile(fileName, generateShape(shape), (err) =>
+function writeFile(fileName, svgString) {
+    fs.writeFile(fileName, svgString, (err) =>
         err ? console.error(err) : console.log('Success!')
     );
 }
@@ -47,8 +47,26 @@ function init() {
     inquirer
     .prompt(questions)
     .then((answers) => {
+        let shape;
+        switch (answers.shape) {
+            case 'circle':
+                    shape = new Circle();
+                    break;
+            case 'triangle':
+                shape = new Triangle();
+                break;
+            case 'square':
+                shape = new Square();
+                break;
+            default:
+                console.log('Invalid shape');
+                return;
+        }
+        shape.setColor(answers.shapecolor);
+        const svg = new Svg(shape, answers.textcolor, answers.text);
+        const svgString = svg.render();
         console.log('Generated logo.svg');
-        writeFile('./examples/logo.svg', answers); // Use user feedback for writing new file function
+        writeFile('./examples/logo.svg', svgString); // Use user feedback for writing new file function
     })
     .catch((error) => {
         if (error.isTtyError) {
